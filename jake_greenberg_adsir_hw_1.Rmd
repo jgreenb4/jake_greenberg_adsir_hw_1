@@ -1,0 +1,358 @@
+---
+title: "hw_1"
+author: "Jake Greenberg"
+date: "3/25/2021"
+output: html_document
+---
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
+```
+
+```{r libraries}
+library(tidyverse)         # for reading in data, graphing, and cleaning
+library(tidymodels)        # for modeling ... tidily
+library(glmnet)            # for regularized regression, including LASSO
+library(naniar)            # for examining missing values (NAs)
+library(lubridate)         # for date manipulation
+library(moderndive)        # for King County housing data
+library(vip)               # for variable importance plots
+library(rmarkdown)         # for paged tables
+library(rsample)
+library(recipes)
+```
+
+```{r}
+theme_set(theme_minimal()) # Lisa's favorite theme
+```
+
+Just like I did above, at the top of the file, put three R code chunks. The first controls options. Right now I have it commented out (a `#` sign in front), but you should uncomment (remove the `#`) when your document is complete so you don't see messages and warnings. The second loads libraries. It is nice to give a brief description of what the library does to remind yourself why you are loading it. The third loads any data used in the document.
+
+# Setting up Git and GitHub in RStudio
+
+## Read the Quick Intro section of the Using git and GitHub in R Studio set of Course Materials. Set up Git and GitHub and create a GitHub repo and associated R Project (done for you when you clone the repo) for this homework assignment. Put this file into the project. You should always open the R Project (.Rproj) file when you work with any of the files in the project.
+
+## Task: Below, post a link to your GitHub repository:
+
+## GitHub repository (ADSIR acronym is just the abbreviation for the course): https://github.com/jgreenb4/AdvancedDataScienceHW1/blob/main/advanced_data_science_in_r_hw_%23_1.Rmd
+
+
+# Website Name: https://jakegreenberg.netlify.app/
+
+
+
+# Tidymodels
+
+_ What are some problems that might exist with the data? You might think about how it was collected and who did the collecting.
+If we construct a model, what type of conclusions will be able to draw from it?
+
+## 1.
+
+After browsing the table of variables in the Data Dictionary, I would expect for the most important predictive variables of is_canceled to be lead_time, arrival_date_year (especially if 2020 is included in the data frame), arrival_date_week_number, number of children, number of babies, market_segment, previous_cancellations, is_repeated_guest, deposit_type, and total_of_special_requests. 
+
+I think that some of the problems that may exist with the data could be privacy concerns with the individual consumer-level detail of each observation, such as revealing the total number of special requests and previous cancellations for a customer. Because the authors use the hotel's databases to construct this dataset, I would want more information on hotel guests consenting to have their information publicly included in this data. Also, I would think that cost-measuring variables such as price charged and market price for a booking could be influencing factors in the probability of a consumer canceling a booking. Also, I found that there were substantial numbers of duplicate observations in this dataset during my initital data cleaning process, so I dropped these duplicate observations using the unique() function.
+
+I believe that the model we will construct will enable us to draw conclusions both on the micro-level, as an optimized model should enable us to make meaningful predictions/classifications of the probability of an individual booking ultimately being canceled, and macro-level, as the optimized model should also reveal which variables are the primary determinants of cancelation risk.
+
+## 2. 
+
+```{r}
+hotels <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-02-11/hotels.csv')
+```
+
+```{r}
+variables <- ls(hotels)
+```
+
+```{r}
+hotels %>% 
+  ggplot(aes(x = is_canceled)) + 
+  geom_density() +
+  ggtitle("Density Plot of Distribution of is_canceled Variable")
+
+hotels %>% 
+  ggplot(aes(x = lead_time)) + 
+  geom_density() +
+  ggtitle("Density Plot of Distribution of lead_time Variable")
+
+hotels %>% 
+  group_by(adults) %>% 
+  filter(n() > 5) %>% 
+  ggplot(aes(x = adults)) + 
+  geom_density() +
+  ggtitle("Density Plot of Distribution of Adults Variable")
+
+hotels %>% 
+  group_by(children) %>% 
+  filter(n() > 5) %>% 
+  ggplot(aes(x = children)) + 
+  geom_density() +
+  ggtitle("Density Plot of Distribution of Children Variable")
+
+hotels %>% 
+  group_by(babies) %>% 
+  filter(n() > 5) %>% 
+  ggplot(aes(x = babies)) + 
+  geom_density() +
+  ggtitle("Density Plot of Distribution of Babies Variable")
+```
+
+```{r}
+hotels %>% 
+  ggplot(aes(x = previous_cancellations, y = total_of_special_requests)) + 
+  geom_jitter() + 
+  ggtitle("Relationship Between Previous Cancellations and Number of Special Requests") +
+  labs(x = "Number of Previous Cancellations", y = "Number of Special Requests Made")
+```
+
+```{r}
+hotels %>% 
+  group_by(hotel, arrival_date_week_number) %>% 
+  mutate(`Total Bookings` = n()) %>% 
+  filter(is_canceled == 1) %>% 
+  mutate(`Cancellations` = n(), `Cancellation Percentage` = `Cancellations`/`Total Bookings`) %>%
+  distinct(hotel, `Cancellation Percentage`) %>% 
+  rename(Hotel = hotel) %>% 
+  ggplot(aes(x = arrival_date_week_number, y = `Cancellation Percentage`, color = Hotel)) + geom_line() +
+  ggtitle("Cancellation Rate by Arrival Date Week of the Year and Hotel") +
+  labs(x = "Arrival Date Number Week of the Year", y = "Cancellation Percentage (%)") +
+  theme(panel.border = element_rect(fill = NA, size = 1))
+```
+
+```{r}
+hotels %>%
+  group_by(hotel, arrival_date_year) %>% 
+  mutate(`Total Bookings` = n(), arrival_date_year = as.factor(arrival_date_year)) %>% 
+  filter(is_canceled == 1) %>% 
+  mutate(`Cancellations` = n(), `Cancellation Percentage` = `Cancellations`/`Total Bookings`) %>%
+  distinct(hotel, `Cancellation Percentage`) %>% 
+  rename(Hotel = hotel, `Arrival Date Year` = arrival_date_year) %>% 
+  ggplot(aes(x = `Arrival Date Year`, y = `Cancellation Percentage`, fill = `Arrival Date Year`)) + geom_bar(stat = "identity") +
+  facet_grid(~Hotel) + 
+  ggtitle("Cancellation Rate by Arrival Date Year and Hotel") +
+  labs(x = "Arrival Date Year", y = "Cancellation Percentage (%)") +
+  theme(panel.border = element_rect(color
+= "black", fill = NA, size = 1))
+```
+
+```{r}
+sum(is.na(hotels)) # there are 4 missing values in this dataset
+which(is.na(hotels)) # locations of the missing values
+summary(hotels) # summary of each of the variables in the dataset and their ranges; there seem to be some abnormally large parties with odd breakdowns, such as a couple with more than 8 babies and just two adults.
+```
+
+# 3
+
+```{r}
+hotels_mod <- hotels %>% 
+  mutate(is_canceled = as.factor(is_canceled)) %>% 
+  mutate(across(where(is.character), as.factor)) %>% 
+  select(-arrival_date_year,
+         -reservation_status,
+         -reservation_status_date) %>% 
+  add_n_miss() %>% 
+  filter(n_miss_all == 0) %>% 
+  select(-n_miss_all)
+
+set.seed(494)
+```
+
+# 4
+```{r}
+set.seed(494)
+hotels_split <- initial_split(hotels_mod, prop = .5, strata = "is_canceled")
+hotels_train <- training(hotels_split)
+hotels_test <- testing(hotels_split)
+```
+
+## Modeling Preparation
+
+```{r}
+hotels_recipe <- recipe(is_canceled ~ ., data = hotels_train) %>%  
+  step_mutate_at(children, babies, previous_cancellations, fn = ~as.factor((. > 0))) %>% 
+  step_mutate_at(agent, company, fn = ~as.factor(. == "NULL")) %>% 
+  step_mutate(country = fct_lump_n(country, 5)) %>% 
+  step_normalize(all_numeric()) %>% 
+  step_dummy(all_nominal(), -all_outcomes())
+
+
+hotels_recipe %>% 
+  prep(hotels_train) %>% 
+  juice()
+```
+
+
+    * Set up the recipe with is_canceled as the outcome and all other variables as predictors (HINT: ~.).
+    
+    *? Use a step_XXX() function or functions (I think there are other ways to do this, but I found step_mutate_at() easiest) to create some indicator variables for the following variables:children,babies, and previous_cancellations`. So, the new variable should be a 1 if the original is more than 0 and 0 otherwise. Make sure you do this in a way that accounts for values that may be larger than any we see in the dataset.
+    
+  
+    *?For the agent and company variables, make new indicator variables that are 1 if they have a value of NULL and 0 otherwise.
+    
+    Use fct_lump_n() to lump together countries that aren’t in the top 5 most occurring.
+    If you used new names for some of the new variables you created, then remove any variables that are no longer needed.
+    
+    Use step_normalize() to center and scale all the non-categorical predictor variables. (Do this BEFORE creating dummy variables. When I tried to do it after, I ran into an error - I’m still investigating why.)
+    Create dummy variables for all factors/categorical predictor variables (make sure you have -all_outcomes() in this part!!).
+    Use the prep() and juice() functions to apply the steps to the training data just to check that everything went as planned.
+
+# 5
+
+    In this step we will set up a LASSO model and workflow.
+
+    In general, why would we want to use LASSO instead of regular logistic regression? (HINT: think about what happens to the coefficients).
+    
+In general, I believe that a LASSO model works better than a regular logistic regression at predicting the probability of a given 
+booking resulting in a cancellation because it will adjust the weights of the coefficients for each variable according to its importance as a predictor (due to the regularization parameter). As a result, if a variable is included in the regression but carries little importance as a predictor of is_canceled, then that coefficient's weight in the regression will be reduced towards 0.
+
+```{r}
+hotels_lasso_mod <- 
+  # Define a linear regression model
+  logistic_reg() %>% 
+  # Set the engine to "lm" (lm() function is used to fit model)
+  set_engine("glmnet") %>% 
+  set_args(penalty = tune()) %>% 
+  # Not necessary here, but good to remember for other models
+  set_mode("classification")
+
+
+
+hotels_lasso_wf <- 
+  # Set up the workflow
+  workflow() %>% 
+  # Add the recipe
+  add_recipe(hotels_recipe) %>% 
+  # Add the modeling
+  add_model(hotels_lasso_mod)
+
+hotels_lasso_wf
+```
+
+```{r}
+set.seed(1211) # for reproducibility
+house_cv <- vfold_cv(hotels_train, v = 5)
+```
+
+```{r}
+penalty_grid <- grid_regular(penalty(),
+                             levels = 10)
+penalty_grid 
+
+
+hotels_lasso_tune <- 
+  hotels_lasso_wf %>% 
+  tune_grid(
+    resamples = hotels_cv,
+    grid = penalty_grid
+    )
+
+hotels_lasso_tune
+```
+
+
+
+```{r}
+# Tell it the workflow
+hotels_lasso_fit <- hotels_lasso_wf %>% 
+  # Fit the model to the training data
+  fit(hotels_train)
+
+# Display the results nicely
+hotels_lasso_fit %>% 
+  pull_workflow_fit() %>% 
+  tidy()
+```
+
+```{r}
+set.seed(1211) # for reproducibility
+hotels_cv <- vfold_cv(hotels_train, v = 5)
+```
+
+
+```{r}
+hotels_lasso_tune %>% 
+  collect_metrics() %>% 
+  filter(.metric == "accuracy") %>% 
+  ggplot(aes(x = penalty, y = mean)) +
+  geom_point() +
+  geom_line() +
+  scale_x_log10(
+   breaks = scales::trans_breaks("log10", function(x) 10^x),
+   labels = scales::trans_format("log10",scales::math_format(10^.x))) +
+  labs(x = "penalty", y = "rmse")
+```
+
+```{r}
+hotels_lasso_tune %>% 
+  show_best(metric = "accuracy")
+best <- hotels_lasso_tune %>% 
+  select_best(metric = "accuracy")
+```
+
+```{r}
+hotels_lasso_final_wf <- hotels_lasso_wf %>% 
+  finalize_workflow(best)
+hotels_lasso_final_wf
+```
+
+```{r}
+hotels_lasso_final_mod <- hotels_lasso_final_wf %>% 
+  fit(data = hotels_train)
+hotels_lasso_final_mod %>% 
+  pull_workflow_fit() %>% 
+  tidy() 
+```
+
+
+
+7. Now that we have a model, let's evaluate it a bit more. All we have looked at so far is the cross-validated accuracy from the previous step. 
+
+* Create a variable importance graph. Which variables show up as the most important? Are you surprised?  
+
+```{r}
+hotels_lasso_final_mod %>% 
+  pull_workflow_fit() %>% 
+  vip()
+```
+
+\\
+The most important variables are if the room reserved is type, if the deposit was non refundable, and previous cancellations. I am slightly surprised by the importance of the room type, but the other two make lots of sense.
+
+* Use the `last_fit()` function to fit the final model and then apply it to the testing data. Report the metrics from the testing data using the `collet_metrics()` function. How do they compare to the cross-validated metrics?
+
+```{r}
+hotels_lasso_test <- hotels_lasso_final_wf %>% 
+  last_fit(hotels_split)
+hotels_lasso_test %>% 
+  collect_metrics()
+```
+
+* Use the `collect_predictions()` function to find the predicted probabilities and classes for the test data. Save this to a new dataset called `preds`. Then, use the `conf_mat()` function from `dials` (part of `tidymodels`) to create a confusion matrix showing the predicted classes vs. the true classes. What is the true positive rate (sensitivity)? What is the true negative rate (specificity)? See this [Wikipedia](https://en.wikipedia.org/wiki/Confusion_matrix) reference if you (like me) tend to forget these definitions.
+
+```{r}
+preds <- hotels_lasso_test %>% 
+  collect_predictions()
+preds %>% 
+  conf_mat(.pred_class, is_canceled)
+```
+
+* Use the `preds` dataset you just created to create a density plot of the predicted probabilities of canceling (the variable is called `.pred_1`), filling by `is_canceled`. Use an `alpha = .5` and `color = NA` in the `geom_density()`. Answer these questions: a. What would this graph look like for a model with an accuracy that was close to 1? b. Our predictions are classified as canceled if their predicted probability of canceling is greater than .5. If we wanted to have a high true positive rate, should we make the cutoff for predicted as canceled higher or lower than .5? c. What happens to the true negative rate if we try to get a higher true positive rate? 
+
+```{r}
+preds %>% 
+  ggplot(aes(x = .pred_1, fill = is_canceled))+
+  geom_density(alpha = 0.5, color = NA)
+```
+
+8. Let's say that this model is going to be applied to bookings 14 days in advance of their arrival at each hotel, and someone who works for the hotel will make a phone call to the person who made the booking. During this phone call, they will try to assure that the person will be keeping their reservation or that they will be canceling in which case they can do that now and still have time to fill the room. How should the hotel go about deciding who to call? How could they measure whether it was worth the effort to do the calling? Can you think of another way they might use the model? 
+
+9. How might you go about questioning and evaluating the model in terms of fairness? Are there any questions you would like to ask of the people who collected the data? 
+
+----------------------------------------------------
+
+
+
+# Exercise 4
+
+## Reflection
+
+I thought that Dr. Rachel Thomas’ Bias and Fairness lecture brought about discussion of many issues, some which were concepts that I had yet to think about regarding data ethics. I always think about the ethical and moral considerations of the work that I do when creating models and brainstorming their potential applications, but had yet to fully grasp the concept of evaluation bias and the potentially detrimental effects that it can have on societal equality. I was unsurpised by the decision of representation bias and the recommended correction method of merely creating training samples that are more representative of the total population in a variety of characteristics (the population that it will be applied to, at least). It is important that we pay attention to bias and fairness when studying data science because data scientists are afforded a certain degree of customization in the sculpting/wrangling of a dataset, and these decisions could ultimately have real-world consequences if they bias the findings of a research study and do not equally account for all demographics within the population. I had never heard of Evaluation Bias before, which Dr. Thomas describes biases in benchmark datasets are replicated at scale. The video discusses that this specific type of bias is often present in facial recognition datasets that include a disproportionate frequency of light-skinned men, compared to the actual population.
