@@ -25,26 +25,28 @@ library(recipes)
 theme_set(theme_minimal()) # Lisa's favorite theme
 ```
 
-Just like I did above, at the top of the file, put three R code chunks. The first controls options. Right now I have it commented out (a `#` sign in front), but you should uncomment (remove the `#`) when your document is complete so you don't see messages and warnings. The second loads libraries. It is nice to give a brief description of what the library does to remind yourself why you are loading it. The third loads any data used in the document.
-
 # Setting up Git and GitHub in RStudio
 
-## Read the Quick Intro section of the Using git and GitHub in R Studio set of Course Materials. Set up Git and GitHub and create a GitHub repo and associated R Project (done for you when you clone the repo) for this homework assignment. Put this file into the project. You should always open the R Project (.Rproj) file when you work with any of the files in the project.
+**Read the Quick Intro section of the Using git and GitHub in R Studio set of Course Materials. Set up Git and GitHub and create a GitHub repo and associated R Project (done for you when you clone the repo) for this homework assignment. Put this file into the project. You should always open the R Project (.Rproj) file when you work with any of the files in the project.**
 
-## Task: Below, post a link to your GitHub repository:
+##Task: Below, post a link to your GitHub repository:
 
-## GitHub repository (ADSIR acronym is just the abbreviation for the course): 
+### GitHub repository (ADSIR acronym is just the abbreviation for the course): 
 https://github.com/jgreenb4/jake_greenberg_adsir_hw_1
 
 
-# Website Name: https://jakegreenberg.netlify.app/
+# **Website Name: https://jakegreenberg.netlify.app/**
+
+## **Reflection**
+
+After listening to “Building a Career in Data Science, Chapter 4: Building a Portfolio”, I think that the discussion was extremely insightful with exhibiting the usefulness of having a personal website. I know from my experience with applying to "analyst/data scientist" type roles over the past year that it is imperative to have easily showcased work to separate yourself from the compeition, and so having an organized website that can clearly and efficiently articulate what you are capable of doing could serve as a logical way to craft your portfolio and enable its accessibility to the public.
 
 
-#Machine Learning review and intro to tidymodels
+# Machine Learning review and intro to tidymodels
 
-Read through and follow along with the Machine Learning review with an intro to the tidymodels package posted on the Course Materials page.
+**Read through and follow along with the Machine Learning review with an intro to the tidymodels package posted on the Course Materials page.**
 
-Tasks:
+## Tasks:
 
     Read about the hotel booking data, hotels, on the Tidy Tuesday page it came from. There is also a link to an article from the original authors. The outcome we will be predicting is called is_canceled.
 
@@ -70,7 +72,7 @@ hotels <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tid
 ```
 
 
-    Create some exploratory plots or table summaries of the data, concentrating most on relationships with the response variable. Keep in mind the response variable is numeric, 0 or 1. You may want to make it categorical (you also may not). Be sure to also examine missing values or other interesting values.
+**Create some exploratory plots or table summaries of the data, concentrating most on relationships with the response variable. Keep in mind the response variable is numeric, 0 or 1. You may want to make it categorical (you also may not). Be sure to also examine missing values or other interesting values.**
     
 ```{r}
 hotels %>% 
@@ -165,7 +167,7 @@ set.seed(494)
 ```
 
 
-    First, we will do a couple things to get the data ready, including making the outcome a factor (needs to be that way for logistic regression), removing the year variable and some reservation status variables, and removing missing values (not NULLs but true missing values). Split the data into a training and test set, stratifying on the outcome variable, is_canceled. Since we have a lot of data, we’re going to split the data 50/50 between training and test. I have already set.seed() for you. Be sure to use hotels_mod in the splitting.
+**First, we will do a couple things to get the data ready, including making the outcome a factor (needs to be that way for logistic regression), removing the year variable and some reservation status variables, and removing missing values (not NULLs but true missing values). Split the data into a training and test set, stratifying on the outcome variable, is_canceled. Since we have a lot of data, we’re going to split the data 50/50 between training and test. I have already set.seed() for you. Be sure to use hotels_mod in the splitting.**
     
 ```{r}
 set.seed(494)
@@ -176,16 +178,16 @@ hotels_test <- testing(hotels_split)
 
 # 4
 
-    In this next step, we are going to do the pre-processing. Usually, I won’t tell you exactly what to do here, but for your first exercise, I’ll tell you the steps.
+**In this next step, we are going to do the pre-processing. Usually, I won’t tell you exactly what to do here, but for your first exercise, I’ll tell you the steps.**
 
-    Set up the recipe with is_canceled as the outcome and all other variables as predictors (HINT: ~.).
-    Use a step_XXX() function or functions (I think there are other ways to do this, but I found step_mutate_at() easiest) to create some indicator variables for the following variables:children,babies, andprevious_cancellations`. So, the new variable should be a 1 if the original is more than 0 and 0 otherwise. Make sure you do this in a way that accounts for values that may be larger than any we see in the dataset.
-    For the agent and company variables, make new indicator variables that are 1 if they have a value of NULL and 0 otherwise.
-    Use fct_lump_n() to lump together countries that aren’t in the top 5 most occurring.
-    If you used new names for some of the new variables you created, then remove any variables that are no longer needed.
-    Use step_normalize() to center and scale all the non-categorical predictor variables. (Do this BEFORE creating dummy variables. When I tried to do it after, I ran into an error - I’m still investigating why.)
-    Create dummy variables for all factors/categorical predictor variables (make sure you have -all_outcomes() in this part!!).
-    Use the prep() and juice() functions to apply the steps to the training data just to check that everything went as planned.
+**Set up the recipe with is_canceled as the outcome and all other variables as predictors (HINT: ~.).**
+**Use a step_XXX() function or functions (I think there are other ways to do this, but I found step_mutate_at() easiest) to create some indicator variables for the following variables:children,babies, andprevious_cancellations`. So, the new variable should be a 1 if the original is more than 0 and 0 otherwise. Make sure you do this in a way that accounts for values that may be larger than any we see in the dataset.**
+**For the agent and company variables, make new indicator variables that are 1 if they have a value of NULL and 0 otherwise.**
+**Use fct_lump_n() to lump together countries that aren’t in the top 5 most occurring.**
+**If you used new names for some of the new variables you created, then remove any variables that are no longer needed.**
+**Use step_normalize() to center and scale all the non-categorical predictor variables. (Do this BEFORE creating dummy variables. When I tried to do it after, I ran into an error - I’m still investigating why.)**
+**Create dummy variables for all factors/categorical predictor variables (make sure you have -all_outcomes() in this part!!).**
+**Use the prep() and juice() functions to apply the steps to the training data just to check that everything went as planned.**
 
 
 ```{r}
@@ -204,14 +206,12 @@ hotels_recipe %>%
 
 # 5
 
-In this step we will set up a LASSO model and workflow.
+**In this step we will set up a LASSO model and workflow.**
 
-In general, why would we want to use LASSO instead of regular logistic regression? (HINT: think about what happens to the coefficients).
+**In general, why would we want to use LASSO instead of regular logistic regression? (HINT: think about what happens to the coefficients).**
 
-Define the model type, set the engine, set the penalty argument to tune() as a placeholder, and set the mode.
-Create a workflow with the recipe and model.
+**Define the model type, set the engine, set the penalty argument to tune() as a placeholder, and set the mode. Create a workflow with the recipe and model.**
 
-    
 In general, I believe that a LASSO model works better than a regular logistic regression at predicting the probability of a given 
 booking resulting in a cancellation because it will adjust the weights of the coefficients for each variable according to its importance as a predictor (due to the regularization parameter). As a result, if a variable is included in the regression but carries little importance as a predictor of is_canceled, then that coefficient's weight in the regression will be reduced towards 0.
 
@@ -241,13 +241,13 @@ hotels_lasso_wf
 
 # 6
 
-In this step, we’ll tune the model and fit the model using the best tuning parameter to the entire training dataset.
+**In this step, we’ll tune the model and fit the model using the best tuning parameter to the entire training dataset.**
 
-Create a 5-fold cross-validation sample. We’ll use this later. I have set the seed for you.
-Use the grid_regular() function to create a grid of 10 potential penalty parameters (we’re keeping this sort of small because the dataset is pretty large). Use that with the 5-fold cv data to tune the model.
-Use the tune_grid() function to fit the models with different tuning parameters to the different cross-validation sets.
-Use the collect_metrics() function to collect all the metrics from the previous step and create a plot with the accuracy on the y-axis and the penalty term on the x-axis. Put the x-axis on the log scale.
-Use the select_best() function to find the best tuning parameter, fit the model using that tuning parameter to the entire training set (HINT: finalize_workflow() and fit()), and display the model results using pull_workflow_fit() and tidy(). Are there some variables with coefficients of 0?
+**Create a 5-fold cross-validation sample. We’ll use this later. I have set the seed for you.**
+**Use the grid_regular() function to create a grid of 10 potential penalty parameters (we’re keeping this sort of small because the dataset is pretty large). Use that with the 5-fold cv data to tune the model.**
+**Use the tune_grid() function to fit the models with different tuning parameters to the different cross-validation sets.**
+**Use the collect_metrics() function to collect all the metrics from the previous step and create a plot with the accuracy on the y-axis and the penalty term on the x-axis. Put the x-axis on the log scale.**
+**Use the select_best() function to find the best tuning parameter, fit the model using that tuning parameter to the entire training set (HINT: finalize_workflow() and fit()), and display the model results using pull_workflow_fit() and tidy(). Are there some variables with coefficients of 0?**
 
 
 ```{r}
@@ -312,11 +312,11 @@ hotels_lasso_final_mod %>%
 
 # 7
 
-Now that we have a model, let’s evaluate it a bit more. All we have looked at so far is the cross-validated accuracy from the previous step.
+**Now that we have a model, let’s evaluate it a bit more. All we have looked at so far is the cross-validated accuracy from the previous step.**
 
-## Create a variable importance graph. Which variables show up as the most important? Are you surprised?
+**Create a variable importance graph. Which variables show up as the most important? Are you surprised?**
 
-### The variables that show up as the most important in this vip are reserved room type, deposit type, if the customer has any previous cancellations (indicator variable), and the assigned room type. I am slightly surprised by the reserved_room_type variable, because without having much context, I would have expected other variables such as whether the deposit type was non-refundable or the customer had previous cancellations to carry heavier weight. 
+The variables that show up as the most important in this vip are reserved room type, deposit type, if the customer has any previous cancellations (indicator variable), and the assigned room type. I am slightly surprised by the reserved_room_type variable, because without having much context, I would have expected other variables such as whether the deposit type was non-refundable or the customer had previous cancellations to carry heavier weight. 
 
 
 ```{r}
@@ -326,7 +326,7 @@ hotels_lasso_final_mod %>%
 ```
 
 
-Use the last_fit() function to fit the final model and then apply it to the testing data. Report the metrics from the testing data using the collet_metrics() function. How do they compare to the cross-validated metrics?
+**Use the last_fit() function to fit the final model and then apply it to the testing data. Report the metrics from the testing data using the collet_metrics() function. How do they compare to the cross-validated metrics?**
 
 These metrics are only slightly higher than the cross-validated metrics.
 
@@ -337,7 +337,7 @@ hotels_lasso_test %>%
   collect_metrics()
 ```
 
-Use the collect_predictions() function to find the predicted probabilities and classes for the test data. Save this to a new dataset called preds. Then, use the conf_mat() function from dials (part of tidymodels) to create a confusion matrix showing the predicted classes vs. the true classes. What is the true positive rate (sensitivity)? What is the true negative rate (specificity)? See this Wikipedia reference if you (like me) tend to forget these definitions.
+**Use the collect_predictions() function to find the predicted probabilities and classes for the test data. Save this to a new dataset called preds. Then, use the conf_mat() function from dials (part of tidymodels) to create a confusion matrix showing the predicted classes vs. the true classes. What is the true positive rate (sensitivity)? What is the true negative rate (specificity)? See this Wikipedia reference if you (like me) tend to forget these definitions.**
 
 The true positive rate, or sensitivity, is (14271/(14271 + 3212)), or about 81.63 %, while the true negative rate, or specificity, is (34371/(34371 + 7839)), or about 81.43 %. 
 
@@ -348,17 +348,18 @@ preds %>%
   conf_mat(.pred_class, is_canceled)
 ```
 
-Use the preds dataset you just created to create a density plot of the predicted probabilities of canceling (the variable is called .pred_1), filling by is_canceled. Use an alpha = .5 and color = NA in the geom_density(). Answer these questions: 
+**Use the preds dataset you just created to create a density plot of the predicted probabilities of canceling (the variable is called .pred_1), filling by is_canceled. Use an alpha = .5 and color = NA in the geom_density(). Answer these questions:**
 
-a. What would this graph look like for a model with an accuracy that was close to 1? 
+**a. What would this graph look like for a model with an accuracy that was close to 1?**
 
 If the model had an accuracy of close to 1, then the graph would be able to distinguish between outcomes more accurately, leading to higher magnitudes for the density plots on each end of the spectrum. 
 
-b. Our predictions are classified as canceled if their predicted probability of canceling is greater than .5. If we wanted to have a high true positive rate, should we make the cutoff for predicted as canceled higher or lower than .5? 
+**b. Our predictions are classified as canceled if their predicted probability of canceling is greater than .5. If we wanted to have a high true positive rate, should we make the cutoff for predicted as canceled higher or lower than .5?**
 
 If we wanted to have a higher true positive rate, then we should make the cutoff for being predicted as canceled lower than .5 to ensure that any fringe/border cases will be considered as potential cancellations (assuming that we do not care about the decrease in specificity that this change would accompany)
 
-c. What happens to the true negative rate if we try to get a higher true positive rate?
+**c. What happens to the true negative rate if we try to get a higher true positive rate?**
+
 If we try to get a higher true positive rate without changing the actual accuracy of the model's probability predictions, the true negative rate will decrease.
 
 ```{r}
@@ -367,11 +368,11 @@ preds %>%
   geom_density(alpha = 0.5, color = NA)
 ```
 
-8. Let's say that this model is going to be applied to bookings 14 days in advance of their arrival at each hotel, and someone who works for the hotel will make a phone call to the person who made the booking. During this phone call, they will try to assure that the person will be keeping their reservation or that they will be canceling in which case they can do that now and still have time to fill the room. How should the hotel go about deciding who to call? How could they measure whether it was worth the effort to do the calling? Can you think of another way they might use the model? 
+**8. Let's say that this model is going to be applied to bookings 14 days in advance of their arrival at each hotel, and someone who works for the hotel will make a phone call to the person who made the booking. During this phone call, they will try to assure that the person will be keeping their reservation or that they will be canceling in which case they can do that now and still have time to fill the room. How should the hotel go about deciding who to call? How could they measure whether it was worth the effort to do the calling? Can you think of another way they might use the model?**
 
 The hotel should likely decide to call customers who are at the highest risk of cancellation/may be border cases. The hotel may be able to safely assume that many of the low probability cancellations will honor their reservations and could possibly overbook in aniticipation of the high probability cancellations retracting their reservations, but the fringe cases of middling cancellation probability could be distinguishing. They could measure the effectiveness of this initiative by creating an economic profit model and monitoring the expected profits based on the model's predictions, compared to the resulting profits after trying to force the customer's hands (opened rooms from these canceled reservations that ultimately are filled by customers who are at a low-risk of cancelation should be beneficial towards the hotel's profit projections).
 
-9. How might you go about questioning and evaluating the model in terms of fairness? Are there any questions you would like to ask of the people who collected the data? 
+**9. How might you go about questioning and evaluating the model in terms of fairness? Are there any questions you would like to ask of the people who collected the data?**
 
 I would evaluate the fairness of the model by evaluating the demographics of the customers. I believe that this dataset has an extremely high likelihood of possessing ommitted variable biases, such as the credit scores of the customers, and given that there are not an overwhelmingly large number of unique consumers in this dataset compared to the population who engage in hotel bookings, I would be concerned about the external validity of the findings from this dataset. Once again, I would want to ask the researchers who collected this data about the customer consent and privacy considerations in this collection because some of this data seems like it should be kept private, although unique customer and reservation identification information could also be useful. Lastly, information about the specific hotels and their quality could have also been helpful, as some hotels may have been of lower quality, thus leading to an inherently higher probability of a reservation being canceled, to begin with.
 
