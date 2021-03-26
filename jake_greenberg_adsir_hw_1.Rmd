@@ -33,7 +33,8 @@ Just like I did above, at the top of the file, put three R code chunks. The firs
 
 ## Task: Below, post a link to your GitHub repository:
 
-## GitHub repository (ADSIR acronym is just the abbreviation for the course): https://github.com/jgreenb4/AdvancedDataScienceHW1/blob/main/advanced_data_science_in_r_hw_%23_1.Rmd
+## GitHub repository (ADSIR acronym is just the abbreviation for the course): 
+https://github.com/jgreenb4/jake_greenberg_adsir_hw_1
 
 
 # Website Name: https://jakegreenberg.netlify.app/
